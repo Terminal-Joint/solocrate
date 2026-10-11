@@ -12,7 +12,9 @@ import type {
   ResourceVersion,
   StorageRef,
 } from "../../../packages/core/src/types.js";
+
 import { LocalBlobStore } from "../../../adapters/local/src/local-blob-store.js";
+import { SupabaseBlobStore } from "../../../adapters/supabase/src/supabase-blob-store.js";
 
 const PORT = Number(process.env.PORT ?? 3000);
 const OWNER_ID = "local-user";
@@ -20,9 +22,25 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 // Uses the API server's filesystem.
 // Set STORAGE_DIR to a persistent disk path when available.
-const blobStore = new LocalBlobStore(
-  process.env.STORAGE_DIR ?? "./solocrate-data",
-);
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseBucket = process.env.SUPABASE_BUCKET ?? "solocrate-blobs";
+
+const isProduction = process.env.NODE_ENV === "production";
+
+const blobStore =
+  supabaseUrl && supabaseKey
+    ? new SupabaseBlobStore(supabaseUrl, supabaseKey, supabaseBucket)
+    : isProduction
+      ? (() => {
+          throw new Error(
+            "Supabase environment variables are required in production.",
+          );
+        })()
+      : new LocalBlobStore(
+          process.env.STORAGE_DIR ?? "./solocrate-data",
+        );
 
 const sandboxes = new Map<
   string,
