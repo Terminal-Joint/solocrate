@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Solocrate</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero"><div class="mark">□</div><div><p class="eyebrow">TERMINAL JOINT</p><h1>Solocrate</h1><p class="subtitle">Community resource infrastructure.</p></div></header>
+
+    <section class="card" id="auth-card">
+      <h2>Your account</h2>
+      <p class="muted">Sign in to access your sandboxes and resources, or create an account.</p>
+      <form id="auth-form">
+        <label>Email<input id="auth-email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters"></label>
+        <div class="section-heading">
+          <button id="signin-button" type="submit">Sign in</button>
+          <button id="signup-button" type="button">Create account</button>
+        </div>
+        <p id="auth-status" class="status" role="status"></p>
+      </form>
+      <div id="signed-in-panel" hidden>
+        <p id="signed-in-email" class="muted"></p>
+        <button id="signout-button" type="button">Sign out</button>
+      </div>
+    </section>
+
+    <div id="app-content" hidden>
+      <section class="card">
+        <h2>Create a Sandbox</h2><p class="muted">An independent community space for resources.</p>
+        <form id="sandbox-form">
+          <label>Name<input id="name" placeholder="PyTamil Community" required></label>
+          <label>Description<textarea id="description" rows="3" placeholder="Tamil Python community resources"></textarea></label>
+          <button id="create-button" type="submit">Create Sandbox</button>
+          <p id="status" class="status" role="status"></p>
+        </form>
+      </section>
+      <section class="card"><div class="section-heading"><h2>Your Sandboxes</h2><span id="count" class="badge">0</span></div>
+        <div id="sandbox-list" class="sandbox-list"><p class="empty">No sandboxes created yet.</p></div>
+      </section>
+      <section class="panel">
+        <div class="section-heading"><div><p class="eyebrow">Resources</p><h2>Community resources</h2></div><span id="resource-count">0</span></div>
+        <form id="resource-form">
+          <label>Sandbox<select id="resource-sandbox" required></select></label>
+          <label>Title<input id="resource-title" type="text" placeholder="Python Tamil Documentation" required></label>
+          <label>Type<select id="resource-type"><option value="documentation">Documentation</option><option value="note">Note</option><option value="question-paper">Question Paper</option><option value="project">Project</option><option value="dataset">Dataset</option><option value="research">Research</option><option value="archive">Archive</option><option value="custom">Custom</option></select></label>
+          <label>Description<textarea id="resource-description" placeholder="Describe this resource"></textarea></label>
+          <label>Visibility<select id="resource-visibility"><option value="members">Members</option><option value="public">Public (membership still required in this release)</option><option value="private">Private</option></select></label>
+          <button type="submit" id="resource-create-button">Create Resource</button>
+          <p id="resource-status" class="status"></p>
+        </form>
+        <div id="resource-list"></div>
+      </section>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
