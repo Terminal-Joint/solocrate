@@ -30,6 +30,13 @@ describe("API authentication", () => {
       createdAt: new Date().toISOString(),
     });
 
+    await dataStore.createMembership({
+      userId: "contributor-user",
+      sandboxId: sandbox.id,
+      role: "contributor",
+      createdAt: new Date().toISOString(),
+    });
+
     await dataStore.createResource(createResource({
       id: "private-resource",
       sandboxId: sandbox.id,
@@ -48,6 +55,9 @@ describe("API authentication", () => {
         }
         if (authorization === "Bearer other-user-token") {
           return { id: "other-user" };
+        }
+        if (authorization === "Bearer contributor-token") {
+          return { id: "contributor-user" };
         }
         if (authorization === "Bearer outsider-token") {
           return { id: "outsider" };
@@ -160,6 +170,75 @@ it("rejects invalid access tokens", async () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ resources: [] });
+  });
+
+
+  it("prevents a non-member from creating resources", async () => {
+    const response = await fetch(`${baseUrl}/resources`, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer outsider-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sandboxId: "private-sandbox",
+        title: "Unauthorized resource",
+        type: "custom",
+      }),
+    });
+
+    expect(response.status).toBe(403);
+  });
+
+  it("prevents a regular member from creating resources", async () => {
+    const response = await fetch(`${baseUrl}/resources`, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer other-user-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sandboxId: "private-sandbox",
+        title: "Member resource",
+        type: "custom",
+      }),
+    });
+
+    expect(response.status).toBe(403);
+  });
+
+  it("allows a contributor to create a resource and upload content", async () => {
+    const createResponse = await fetch(`${baseUrl}/resources`, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer contributor-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sandboxId: "private-sandbox",
+        title: "Contributor resource",
+        type: "custom",
+      }),
+    });
+
+    expect(createResponse.status).toBe(201);
+    const created = await createResponse.json();
+    const resourceId = created.resource.id as string;
+
+    const uploadResponse = await fetch(
+      `${baseUrl}/resources/${encodeURIComponent(resourceId)}/content`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer contributor-token",
+          "Content-Type": "application/octet-stream",
+          "X-File-Name": "test.txt",
+        },
+        body: "Solocrate authorization test",
+      },
+    );
+
+    expect(uploadResponse.status).toBe(201);
   });
 
 });
