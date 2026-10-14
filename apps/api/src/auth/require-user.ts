@@ -18,9 +18,12 @@ const authClient = createClient(supabaseUrl, supabasePublicKey, {
   },
 });
 
+export type PlatformRole = "user" | "moderator" | "admin";
+
 export interface AuthenticatedUser {
   id: string;
   email?: string;
+  platformRole?: PlatformRole;
 }
 
 export async function verifyAccessToken(
@@ -43,9 +46,16 @@ export async function verifyAccessToken(
       return null;
     }
 
+    // Only app_metadata is trusted here. Users can edit user_metadata themselves.
+    const configuredRole = data.user.app_metadata?.solocrate_role;
+    const platformRole: PlatformRole =
+      configuredRole === "admin" || configuredRole === "moderator"
+        ? configuredRole
+        : "user";
     return {
       id: data.user.id,
       ...(data.user.email ? { email: data.user.email } : {}),
+      platformRole,
     };
   } catch {
     return null;

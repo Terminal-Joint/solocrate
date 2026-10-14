@@ -162,6 +162,16 @@ export function createApiServer({
 
     const actor: Actor = { userId: user.id };
 
+    if (method === "GET" && path === "/me") {
+      return json(req, res, 200, {
+        user: { id: user.id, email: user.email },
+        platformRole: user.platformRole ?? "user",
+      });
+    }
+
+    // Platform role claims are verified by Supabase Auth; sandbox actions still
+    // require membership and the existing can(actor, action, context) checks.
+
     if (method === "GET" && path === "/sandboxes") {
       const allSandboxes = await dataStore.getSandboxes();
       const sandboxes = [];

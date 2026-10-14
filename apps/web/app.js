@@ -16,6 +16,24 @@ const authPassword = $("#auth-password");
 const signInButton = $("#signin-button");
 const signUpButton = $("#signup-button");
 const signOutButton = $("#signout-button");
+const googleSignInButton = $("#google-signin-button");
+const adminNav = $("#admin-nav");
+const roleSummary = $("#role-summary");
+const roleFoot = $("#role-foot");
+const accountLabel = $("#account-label");
+const accountAvatar = $("#account-avatar");
+const platformRoleBadge = $("#platform-role-badge");
+const overviewSandboxList = $("#overview-sandbox-list");
+const overviewResourceList = $("#overview-resource-list");
+const sandboxCountChip = $("#sandbox-count-chip");
+const resourceCountChip = $("#resource-count-chip");
+const detailResourceList = $("#detail-resource-list");
+const detailSandboxName = $("#detail-sandbox-name");
+const detailSandboxDescription = $("#detail-sandbox-description");
+const detailSandboxRole = $("#detail-sandbox-role");
+const membershipRoleSummary = $("#membership-role-summary");
+let platformRole = "user";
+let selectedSandboxId = null;
 const authStatus = $("#auth-status");
 const authUser = $("#auth-user");
 
@@ -58,6 +76,62 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+const safePlatformRoles = new Set(["user", "moderator", "admin"]);
+function switchView(view) {
+  const panel = document.querySelector(`[data-view-panel="${view}"]`);
+  if (!panel) return;
+  document.querySelectorAll("[data-view-panel]").forEach((item) => item.classList.toggle("active", item === panel));
+  document.querySelectorAll("[data-view]").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
+  $("#breadcrumb-current").textContent = ({overview:"Overview",sandboxes:"Sandboxes",resources:"Resources","sandbox-detail":"Sandbox",administration:"Administration"})[view] || "Overview";
+  if (view === "sandbox-detail") renderSelectedSandbox();
+}
+function resourceCard(resource) {
+  const parent = sandboxes.find((item) => item.id === resource.sandboxId);
+  return `<article class="resource-item"><p class="sandbox-name">${escapeHtml(resource.title)}</p><p class="sandbox-slug"><span class="resource-type-chip">${escapeHtml(resource.type)}</span> <span class="visibility-chip">${escapeHtml(resource.visibility)}</span></p>${resource.description ? `<p class="resource-description-text">${escapeHtml(resource.description)}</p>` : ""}<p class="resource-parent">Sandbox: ${escapeHtml(parent?.name || "Unknown")}</p><label class="upload-control">Upload a file<input type="file" data-upload="${escapeHtml(resource.id)}" ${currentUser ? "" : "disabled"}></label><button type="button" class="secondary download-button" data-download="${escapeHtml(resource.id)}" ${currentUser ? "" : "disabled"}>↓ Download latest file</button><p class="status" data-file-status="${escapeHtml(resource.id)}"></p></article>`;
+}
+function renderSelectedSandbox() {
+  const sandbox = sandboxes.find((item) => item.id === selectedSandboxId);
+  if (!sandbox) { switchView("sandboxes"); return; }
+  detailSandboxName.textContent = sandbox.name;
+  detailSandboxDescription.textContent = sandbox.description || "Resources and community materials in this space.";
+  const membershipRole = sandbox.membership?.role || sandbox.role || "member";
+  detailSandboxRole.textContent = membershipRole;
+  membershipRoleSummary.textContent = `Your sandbox role: ${membershipRole}. Permissions are checked by the API. Role assignment remains unavailable until the API has a tested membership-management endpoint.`;
+  const own = resources.filter((item) => item.sandboxId === sandbox.id);
+  detailResourceList.innerHTML = own.length ? own.map(resourceCard).join("") : '<div class="empty-state"><strong>No resources in this sandbox yet</strong><p>Create a resource for this space.</p></div>';
+}
+function renderWorkspaceExtras() {
+  const sandboxMarkup = sandboxes.length ? sandboxes.map((item) => `<button type="button" class="sandbox-card" data-open-sandbox="${escapeHtml(item.id)}"><span>▦</span><span class="sandbox-card-body"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.description || "Community sandbox")}</small><em>Open workspace →</em></span></button>`).join("") : '<div class="empty-state"><strong>Your workspace starts here</strong><p>Sign in, then create a sandbox for your community or project.</p></div>';
+  overviewSandboxList.innerHTML = sandboxMarkup;
+  overviewResourceList.innerHTML = resources.length ? resources.slice(0,4).map(resourceCard).join("") : '<p class="empty">Resources you create will appear here, inside their sandboxes.</p>';
+  $("#nav-sandbox-count").textContent = String(sandboxes.length);
+  $("#nav-resource-count").textContent = String(resources.length);
+  sandboxCountChip.textContent = `${sandboxes.length} spaces`;
+  resourceCountChip.textContent = `${resources.length} resources`;
+  roleSummary.textContent = platformRole === "admin" ? "Admin" : platformRole === "moderator" ? "Moderator" : currentUser ? "Member" : "Guest";
+  roleFoot.textContent = platformRole === "admin" ? "Platform-wide role" : platformRole === "moderator" ? "Platform moderation role" : currentUser ? "Standard account" : "Sign in to see your role";
+  adminNav.hidden = !currentUser || !["admin","moderator"].includes(platformRole);
+  accountLabel.textContent = currentUser ? (currentUser.email || "Signed in") : "Not signed in";
+  accountAvatar.textContent = currentUser ? (currentUser.email || "S").slice(0,1).toUpperCase() : "S";
+  platformRoleBadge.textContent = platformRole === "admin" ? "Platform administrator" : platformRole === "moderator" ? "Platform moderator" : "Not authorized";
+  if (selectedSandboxId) renderSelectedSandbox();
+}
+document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
+document.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.go)));
+document.addEventListener("click", (event) => {
+  if (!(event.target instanceof Element)) return;
+  const button = event.target.closest("[data-open-sandbox]");
+  if (button) { selectedSandboxId = button.dataset.openSandbox; switchView("sandbox-detail"); }
+});
+$("#detail-create-resource").addEventListener("click", () => {
+  switchView("resources"); resourceSandbox.value = selectedSandboxId || ""; resourceTitle.focus();
+});
+document.querySelectorAll("[data-detail-tab]").forEach((button) => button.addEventListener("click", () => {
+  const members = button.dataset.detailTab === "members";
+  $("#detail-resources-panel").hidden = members; $("#detail-members-panel").hidden = !members;
+  document.querySelectorAll("[data-detail-tab]").forEach((tab) => tab.classList.toggle("active", tab === button));
+}));
+
 function renderSandboxOptions() {
   resourceSandbox.innerHTML = sandboxes.length
     ? sandboxes.map((sandbox) =>
@@ -68,52 +142,23 @@ function renderSandboxOptions() {
 
 function render() {
   count.textContent = String(sandboxes.length);
-
   list.innerHTML = sandboxes.length
-    ? sandboxes.map((sandbox) => `
-        <article class="sandbox">
-          <p class="sandbox-name">${escapeHtml(sandbox.name)}</p>
-          <p class="sandbox-slug">${escapeHtml(sandbox.slug)}</p>
-        </article>
-      `).join("")
-    : '<p class="empty">No sandboxes available.</p>';
-
+    ? sandboxes.map((item) => `<button type="button" class="sandbox-card" data-open-sandbox="${escapeHtml(item.id)}"><span>▦</span><span class="sandbox-card-body"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.description || "Community sandbox")}</small><em>Open workspace →</em></span></button>`).join("")
+    : '<div class="empty-state"><strong>No sandboxes yet</strong><p>Create a space for your community or project.</p></div>';
   renderSandboxOptions();
+  renderWorkspaceExtras();
 }
-
 function renderResources() {
   resourceCount.textContent = String(resources.length);
-
-  resourceList.innerHTML = resources.length
-    ? resources.map((resource) => `
-        <article class="sandbox">
-          <p class="sandbox-name">${escapeHtml(resource.title)}</p>
-          <p class="sandbox-slug">
-            ${escapeHtml(resource.type)} · ${escapeHtml(resource.visibility)}
-          </p>
-          <label>
-            Upload a file
-            <input
-              type="file"
-              data-upload="${escapeHtml(resource.id)}"
-              ${currentUser ? "" : "disabled"}
-            />
-          </label>
-          <button
-            type="button"
-            data-download="${escapeHtml(resource.id)}"
-            ${currentUser ? "" : "disabled"}
-          >
-            Download latest file
-          </button>
-          <p class="status" data-file-status="${escapeHtml(resource.id)}"></p>
-        </article>
-      `).join("")
-    : '<p class="empty">No resources available.</p>';
+  resourceList.innerHTML = resources.length ? resources.map(resourceCard).join("") : '<div class="empty-state"><strong>No resources yet</strong><p>Create a resource inside one of your sandboxes.</p></div>';
+  renderWorkspaceExtras();
 }
 
 function updateAuthUI() {
   const signedIn = Boolean(currentUser);
+  googleSignInButton.hidden = signedIn;
+  authEmail.closest("label").hidden = signedIn;
+  authPassword.closest("label").hidden = signedIn;
 
   authEmail.disabled = signedIn || authOperationInProgress;
   authPassword.disabled = signedIn || authOperationInProgress;
@@ -217,8 +262,36 @@ async function refreshAccountData() {
     return;
   }
 
+  try {
+    const profileResponse = await apiFetch("/me");
+    const profile = await readResponse(profileResponse, "Could not load account permissions.");
+    platformRole = safePlatformRoles.has(profile.platformRole) ? profile.platformRole : "user";
+  } catch (error) {
+    platformRole = "user";
+    setStatus(authStatus, error.message || "Could not load account permissions.", true);
+  }
+  renderWorkspaceExtras();
   await Promise.all([loadSandboxes(), loadResources()]);
 }
+
+googleSignInButton.addEventListener("click", async () => {
+  if (authOperationInProgress || currentUser) return;
+  authOperationInProgress = true;
+  googleSignInButton.disabled = true;
+  setStatus(authStatus, "Redirecting to Google…");
+  try {
+    const redirectTo = new URL("./", window.location.href).href;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+    if (error) throw error;
+  } catch (error) {
+    setStatus(authStatus, error.message || "Google sign-in failed.", true);
+    authOperationInProgress = false;
+    googleSignInButton.disabled = false;
+  }
+});
 
 authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -449,6 +522,7 @@ resourceList.addEventListener("click", async (event) => {
 
 supabase.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user ?? null;
+  platformRole = "user";
   updateAuthUI();
 
   if (
@@ -466,3 +540,5 @@ supabase.auth.onAuthStateChange((event, session) => {
 
 updateAuthUI();
 render();
+renderWorkspaceExtras();
+switchView("overview");
