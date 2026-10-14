@@ -2,87 +2,52 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Solocrate</title><link rel="stylesheet" href="./style.css">
+<meta name="theme-color" content="#0b1020">
+<meta name="description" content="Solocrate community resource infrastructure.">
+<title>Solocrate · Resource Infrastructure</title><link rel="stylesheet" href="./style.css">
 </head>
-<body>
-<main class="shell">
-<header class="hero"><div class="mark">□</div><div><p class="eyebrow">TERMINAL JOINT</p><h1>Solocrate</h1><p class="subtitle">Community resource infrastructure.</p></div></header>
-<section class="card">
-<h2>Create a Sandbox</h2><p class="muted">An independent community space for resources.</p>
-<form id="sandbox-form">
-<label>Name<input id="name" placeholder="PyTamil Community" required></label>
-<label>Description<textarea id="description" rows="3" placeholder="Tamil Python community resources"></textarea></label>
-<button id="create-button" type="submit">Create Sandbox</button>
-<p id="status" class="status" role="status"></p>
-</form></section>
-<section class="card"><div class="section-heading"><h2>Your Sandboxes</h2><span id="count" class="badge">0</span></div>
-<div id="sandbox-list" class="sandbox-list"><p class="empty">No sandboxes created yet.</p></div></section>
-</main>
-<section class="panel">
-  <div class="section-heading">
-    <div>
-      <p class="eyebrow">Resources</p>
-      <h2>Community resources</h2>
-    </div>
-
-    <span id="resource-count">0</span>
-  </div>
-
-  <form id="resource-form">
-    <label>
-      Sandbox
-      <select id="resource-sandbox" required></select>
-    </label>
-
-    <label>
-      Title
-      <input
-        id="resource-title"
-        type="text"
-        placeholder="Python Tamil Documentation"
-        required
-      />
-    </label>
-
-    <label>
-      Type
-      <select id="resource-type">
-        <option value="documentation">Documentation</option>
-        <option value="note">Note</option>
-        <option value="question-paper">Question Paper</option>
-        <option value="project">Project</option>
-        <option value="dataset">Dataset</option>
-        <option value="research">Research</option>
-        <option value="archive">Archive</option>
-        <option value="custom">Custom</option>
-      </select>
-    </label>
-
-    <label>
-      Description
-      <textarea
-        id="resource-description"
-        placeholder="Describe this resource"
-      ></textarea>
-    </label>
-
-    <label>
-      Visibility
-      <select id="resource-visibility">
-        <option value="members">Members</option>
-        <option value="public">Public</option>
-        <option value="private">Private</option>
-      </select>
-    </label>
-
-    <button type="submit" id="resource-create-button">
-      Create Resource
-    </button>
-
-    <p id="resource-status" class="status"></p>
-  </form>
-
-  <div id="resource-list"></div>
+<body data-solocrate-shell>
+<aside class="sidebar">
+  <a class="brand" href="#overview"><span class="brand-mark"><i>?</i><b></b></span><span><strong>solocrate<span class="brand-period">.</span></strong><small>TERMINAL JOINT</small></span></a>
+  <p class="side-label">WORKSPACE</p>
+  <nav><button class="nav-item active" data-view="overview">◫ &nbsp; Overview</button><button class="nav-item" data-view="sandboxes">▦ &nbsp; Sandboxes <span id="nav-sandbox-count">0</span></button><button class="nav-item" data-view="resources">▤ &nbsp; Resources <span id="nav-resource-count">0</span></button></nav>
+  <p class="side-label">GOVERNANCE</p><nav><button id="admin-nav" class="nav-item" data-view="administration" hidden>◇ &nbsp; Administration</button></nav>
+  <div class="side-spacer"></div><div class="side-note"><strong>Resources, together.</strong><p>A home for community knowledge, files, and shared work.</p></div><small class="side-footer">● Community infrastructure</small>
+</aside>
+<main class="main">
+<header class="topbar"><div class="mobile-brand">▣ solocrate</div><div class="breadcrumb">Workspace / <strong id="breadcrumb-current">Overview</strong></div><div class="account-mini"><span id="account-avatar">S</span><span id="account-label">Not signed in</span></div></header>
+<section id="auth-card" class="panel auth-panel">
+  <div><p class="kicker">YOUR COMMUNITY WORKSPACE</p><h2 id="auth-heading">Welcome to Solocrate</h2><p class="muted">Sign in to create sandboxes, organize resources, and collaborate.</p><p id="auth-user" class="muted">You are not signed in.</p></div>
+  <div class="auth-box"><button type="button" id="google-signin-button" class="google-button"><b>G</b> Continue with Google</button><div class="or"><span>or use email</span></div>
+  <form id="auth-form"><label>Email<input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" required></label><label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></label><div class="auth-actions"><button type="submit" id="signin-button" class="primary">Sign in</button><button type="button" id="signup-button" class="secondary">Create account</button></div><button type="button" id="signout-button" class="secondary" hidden>Sign out</button><p id="auth-status" class="status" role="status" aria-live="polite"></p></form></div>
 </section>
-<script src="./app.js"></script>
+<section class="view active" data-view-panel="overview">
+  <div class="page-heading"><div><p class="kicker">YOUR SPACE, ORGANIZED</p><h1>Overview</h1><p class="muted">A control plane for community spaces, shared files, and organized knowledge.</p></div><button class="primary" data-go="sandboxes">＋ New sandbox</button></div>
+  <div class="stats"><article class="panel stat"><span>Your sandboxes</span><strong id="count">0</strong><small>Spaces you can access</small></article><article class="panel stat"><span>Resources</span><strong id="resource-count">0</strong><small>Organized inside sandboxes</small></article><article class="panel stat"><span>Your access</span><strong id="role-summary">Guest</strong><small id="role-foot">Sign in to see your role</small></article></div>
+  <section class="panel section"><div class="section-head"><div><p class="kicker">WORKSPACE</p><h2>Recent sandboxes</h2></div><button class="quiet" data-go="sandboxes">View all →</button></div><div id="overview-sandbox-list" class="card-grid"></div></section>
+  <section class="panel section"><div class="section-head"><div><p class="kicker">LATEST</p><h2>Recent resources</h2></div><button class="quiet" data-go="resources">Browse resources →</button></div><div id="overview-resource-list" class="card-grid"></div></section>
+</section>
+<section class="view" data-view-panel="sandboxes">
+  <div class="page-heading"><div><p class="kicker">WORKSPACE / SANDBOXES</p><h1>Sandboxes</h1><p class="muted">Each sandbox has its own resources, membership, and permissions.</p></div></div>
+  <div class="two-col"><section class="panel section"><div class="section-head"><div><p class="kicker">YOUR SPACES</p><h2>Sandbox directory</h2></div><span id="sandbox-count-chip" class="chip">0 spaces</span></div><div id="sandbox-list" class="card-grid"></div></section>
+  <section class="panel section"><p class="kicker">CREATE A SPACE</p><h2>New sandbox</h2><p class="muted">The creator becomes this sandbox's admin.</p><form id="sandbox-form"><label>Name<input id="name" maxlength="100" placeholder="PyTamil Community" required></label><label>Description<textarea id="description" rows="3" maxlength="500" placeholder="What is this space for?"></textarea></label><button id="create-button" class="primary" type="submit">Create sandbox</button><p id="status" class="status" role="status"></p></form></section></div>
+</section>
+<section class="view" data-view-panel="resources">
+  <div class="page-heading"><div><p class="kicker">WORKSPACE / RESOURCES</p><h1>Resources</h1><p class="muted">Every resource belongs to a sandbox, keeping ownership and permissions together.</p></div></div>
+  <section class="panel section"><div class="section-head"><div><p class="kicker">RESOURCE DIRECTORY</p><h2>Resources across your sandboxes</h2></div><span id="resource-count-chip" class="chip">0 resources</span></div><div id="resource-list" class="card-grid"></div></section>
+  <section class="panel section"><p class="kicker">ADD TO A SANDBOX</p><h2>Create resource</h2><form id="resource-form" class="form-grid"><label class="wide">Sandbox<select id="resource-sandbox" required></select></label><label>Title<input id="resource-title" required maxlength="160" placeholder="Python Tamil Documentation"></label><label>Type<select id="resource-type"><option value="documentation">Documentation</option><option value="note">Note</option><option value="question-paper">Question Paper</option><option value="project">Project</option><option value="dataset">Dataset</option><option value="research">Research</option><option value="archive">Archive</option><option value="custom">Custom</option></select></label><label class="wide">Description<textarea id="resource-description" rows="3" maxlength="1000" placeholder="Describe this resource"></textarea></label><label>Visibility<select id="resource-visibility"><option value="members">Members</option><option value="public">Public</option><option value="private">Private</option></select></label><div class="wide"><button type="submit" id="resource-create-button" class="primary">Create resource</button><p id="resource-status" class="status" role="status"></p></div></form></section>
+</section>
+<section class="view" data-view-panel="sandbox-detail">
+  <button class="quiet back" data-go="sandboxes">← All sandboxes</button><div class="page-heading"><div><p class="kicker">SANDBOX WORKSPACE</p><h1 id="detail-sandbox-name">Sandbox</h1><p id="detail-sandbox-description" class="muted"></p></div><span id="detail-sandbox-role" class="role-chip">Member</span></div>
+  <div class="tabs"><button class="tab active" data-detail-tab="resources">Resources</button><button class="tab" data-detail-tab="members">Members & roles</button></div>
+  <section class="panel section" id="detail-resources-panel"><div class="section-head"><div><p class="kicker">INSIDE THIS SANDBOX</p><h2>Resources</h2></div><button id="detail-create-resource" class="primary">＋ Create resource</button></div><div id="detail-resource-list" class="card-grid"></div></section>
+  <section class="panel section" id="detail-members-panel" hidden><p class="kicker">GOVERNANCE</p><h2>Members & roles</h2><p id="membership-role-summary" class="notice">Sandbox membership roles are enforced by the API. Role assignment is not exposed until a tested membership-management endpoint exists.</p></section>
+</section>
+<section class="view" data-view-panel="administration">
+  <div class="page-heading"><div><p class="kicker">PLATFORM / GOVERNANCE</p><h1>Administration</h1><p class="muted">Platform roles come from trusted Supabase app metadata, never browser input.</p></div><span id="platform-role-badge" class="role-chip">Not authorized</span></div>
+  <section class="panel section"><p class="kicker">ACCESS CONTROL</p><h2>Platform permissions</h2><div class="role-grid"><article><strong>Administrator</strong><p>Platform-wide configuration and privileged governance operations.</p></article><article><strong>Moderator</strong><p>Moderation tools, limited to server-authorized actions.</p></article><article><strong>Sandbox admin</strong><p>Manages one sandbox within its backend-enforced policy.</p></article></div><p class="notice">Assign <code>app_metadata.solocrate_role</code> only through a trusted Supabase administrative workflow. Never expose the service-role key in the frontend.</p></section>
+</section>
+<footer class="footer">Solocrate <span>Community resource infrastructure · Terminal Joint</span></footer>
+</main>
+<script type="module" src="./app.js"></script>
 </body></html>
