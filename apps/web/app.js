@@ -446,15 +446,23 @@ resourceList.addEventListener("click", async (event) => {
   }
 });
 
+
 supabase.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user ?? null;
   updateAuthUI();
 
-  if (event === "SIGNED_IN" || event === "INITIAL_SESSION" ||
-      event === "TOKEN_REFRESHED" || event === "SIGNED_OUT") {
-    void refreshAccountData();
+  if (
+    event === "SIGNED_IN" ||
+    event === "INITIAL_SESSION" ||
+    event === "TOKEN_REFRESHED" ||
+    event === "SIGNED_OUT"
+  ) {
+    setTimeout(() => {
+      void refreshAccountData();
+    }, 0);
   }
 });
+
 
 updateAuthUI();
 render();
