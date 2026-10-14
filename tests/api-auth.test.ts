@@ -49,6 +49,9 @@ describe("API authentication", () => {
         if (authorization === "Bearer other-user-token") {
           return { id: "other-user" };
         }
+        if (authorization === "Bearer outsider-token") {
+          return { id: "outsider" };
+        }
         return null;
       },
     });
@@ -134,4 +137,29 @@ it("rejects invalid access tokens", async () => {
 
     expect(response.status).toBe(403);
   });
+
+  it("prevents a non-member from accessing resource content", async () => {
+    const response = await fetch(
+      `${baseUrl}/resources/private-resource/content`,
+      {
+        headers: {
+          Authorization: "Bearer outsider-token",
+        },
+      },
+    );
+
+    expect(response.status).toBe(403);
+  });
+
+  it("does not list resources from sandboxes the user cannot access", async () => {
+    const response = await fetch(`${baseUrl}/resources`, {
+      headers: {
+        Authorization: "Bearer outsider-token",
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ resources: [] });
+  });
+
 });
