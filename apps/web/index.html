@@ -7,6 +7,40 @@
 <body>
 <main class="shell">
 <header class="hero"><div class="mark">□</div><div><p class="eyebrow">TERMINAL JOINT</p><h1>Solocrate</h1><p class="subtitle">Community resource infrastructure.</p></div></header>
+
+<section class="card" id="auth-card">
+  <h2>Account</h2>
+  <p class="muted">Sign in to access your Solocrate sandboxes and resources.</p>
+
+  <form id="auth-form">
+    <label>
+      Email
+      <input id="auth-email" type="email" autocomplete="email" required>
+    </label>
+
+    <label>
+      Password
+      <input
+        id="auth-password"
+        type="password"
+        autocomplete="current-password"
+        minlength="8"
+        required
+      >
+    </label>
+
+    <div class="auth-actions">
+      <button type="submit" id="signin-button">Sign In</button>
+      <button type="button" id="signup-button">Create Account</button>
+    </div>
+
+    <button type="button" id="signout-button" hidden>Sign Out</button>
+    <p id="auth-status" class="status" role="status"></p>
+  </form>
+
+  <p id="auth-user" class="muted"></p>
+</section>
+
 <section class="card">
 <h2>Create a Sandbox</h2><p class="muted">An independent community space for resources.</p>
 <form id="sandbox-form">
@@ -84,5 +118,5 @@
 
   <div id="resource-list"></div>
 </section>
-<script src="./app.js"></script>
+<script type="module" src="./app.js"></script>
 </body></html>
